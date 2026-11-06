@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Escala Equipe A</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: herói com céu animado do turno de hoje; consulta de data; ciclo de 24 dias; calendário com resumo do mês e detalhe do dia tocado; próximas folgas com destaque de fim de semana */
+:root{
+  --bg:#eceef4; --surface:#ffffff; --surface-2:#f5f6fa; --fg:#141a2c; --muted:#666d84; --line:#dfe2eb;
+  --gold:#b88a2e; --gold-soft:#f6ecd6;
+  --manha-a:#ffd36e; --manha-b:#ff9f5a; --manha-soft:#fff2da; --manha-ink:#8a5600;
+  --tarde-a:#ff8a6b; --tarde-b:#d9467a; --tarde-soft:#ffe2e4; --tarde-ink:#a1284f;
+  --noite-a:#3d42a6; --noite-b:#121848; --noite-soft:#e2e4fb; --noite-ink:#2e348f;
+  --folga-a:#3fd1a4; --folga-b:#14877a; --folga-soft:#d6f5ea; --folga-ink:#0e6b5b;
+  --shadow:0 1px 2px rgba(20,26,44,.05),0 14px 36px -14px rgba(20,26,44,.2);
+  --display:"Syne",system-ui,sans-serif; --body:"Manrope",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0b0e18; --surface:#141929; --surface-2:#1a2033; --fg:#eef0f8; --muted:#929ab3; --line:#252c43;
+  --gold:#e6bb63; --gold-soft:#3a3020;
+  --manha-soft:#382c16; --manha-ink:#ffd36e; --tarde-soft:#3b1b29; --tarde-ink:#ffa0b8;
+  --noite-soft:#1f2450; --noite-ink:#aeb4ff; --folga-soft:#0f3931; --folga-ink:#62e4bd;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 18px 44px -18px rgba(0,0,0,.7); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b0e18; --surface:#141929; --surface-2:#1a2033; --fg:#eef0f8; --muted:#929ab3; --line:#252c43;
+  --gold:#e6bb63; --gold-soft:#3a3020;
+  --manha-soft:#382c16; --manha-ink:#ffd36e; --tarde-soft:#3b1b29; --tarde-ink:#ffa0b8;
+  --noite-soft:#1f2450; --noite-ink:#aeb4ff; --folga-soft:#0f3931; --folga-ink:#62e4bd;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 18px 44px -18px rgba(0,0,0,.7); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:900px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.eyebrow{font-size:.72rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(2rem,5.5vw,2.8rem);line-height:1;margin:6px 0 0;letter-spacing:-.025em}
+.flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.flow span{font-size:.78rem;font-weight:700;padding:5px 10px;border-radius:999px;color:#fff}
+.flow em{font-style:normal;color:var(--muted);font-size:.8rem}
+
+/* ===== Herói ===== */
+.hero{position:relative;overflow:hidden;border-radius:28px;box-shadow:var(--shadow);min-height:260px;isolation:isolate;color:#fff}
+.hero .sky{position:absolute;inset:0;z-index:-2}
+.hero.manha .sky{background:linear-gradient(160deg,#ffe7a3 0%,var(--manha-a) 40%,var(--manha-b) 100%)}
+.hero.tarde .sky{background:linear-gradient(170deg,#ffb38a 0%,var(--tarde-a) 35%,var(--tarde-b) 80%,#6b2a7a 100%)}
+.hero.noite .sky{background:linear-gradient(170deg,#262b7a 0%,var(--noite-a) 30%,var(--noite-b) 100%)}
+.hero.folga .sky{background:linear-gradient(150deg,#9ff0d2 0%,var(--folga-a) 40%,var(--folga-b) 100%)}
+.hero.manha{color:#3a2200}
+.orb{position:absolute;right:8%;top:50%;width:150px;height:150px;border-radius:50%;transform:translateY(-50%);z-index:-1}
+.hero.manha .orb{background:radial-gradient(circle at 40% 40%,#fffbe8,#fff1b0 45%,#ffd36e 70%);box-shadow:0 0 0 18px rgba(255,255,255,.22),0 0 0 40px rgba(255,255,255,.12),0 0 80px 20px rgba(255,240,180,.8);animation:rise 6s ease-in-out infinite alternate}
+.hero.tarde .orb{top:78%;background:radial-gradient(circle at 50% 40%,#fff1d6,#ffc07a 50%,#ff7b55 75%);box-shadow:0 0 70px 24px rgba(255,170,110,.65);animation:rise 6s ease-in-out infinite alternate}
+.hero.noite .orb{width:110px;height:110px;background:radial-gradient(circle at 35% 35%,#ffffff,#e6e8ff 60%,#c9cdf5);box-shadow:0 0 60px 14px rgba(200,205,255,.35),inset -22px -8px 0 0 rgba(120,128,200,.35)}
+.hero.folga .orb{width:130px;height:130px;background:radial-gradient(circle at 40% 40%,#ffffff,#e2fff4 55%,#a8f0d4);box-shadow:0 0 0 16px rgba(255,255,255,.18),0 0 70px 18px rgba(255,255,255,.45);animation:breathe 4s ease-in-out infinite}
+.stars{position:absolute;inset:0;z-index:-1;pointer-events:none}
+.stars i{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;opacity:.8;animation:tw 3s ease-in-out infinite}
+.hills{position:absolute;left:0;right:0;bottom:0;height:70px;z-index:-1;opacity:.25;background:radial-gradient(120% 100% at 20% 100%,#000 50%,transparent 51%),radial-gradient(90% 90% at 85% 110%,#000 50%,transparent 51%)}
+.hero.manha .hills{opacity:.08}
+@keyframes rise{from{transform:translateY(-46%)}to{transform:translateY(-54%)}}
+@keyframes breathe{50%{transform:translateY(-50%) scale(1.05)}}
+@keyframes tw{50%{opacity:.2}}
+.hero-in{position:relative;padding:28px;display:flex;flex-direction:column;gap:6px;max-width:560px}
+.hero .k{font-size:.75rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;opacity:.85}
+.hero .big{font-family:var(--display);font-weight:800;font-size:clamp(3rem,11vw,5rem);line-height:.92;letter-spacing:-.035em;margin:4px 0 6px}
+.hero .info{font-size:1.02rem;font-weight:500;opacity:.95;max-width:36ch}
+.prog{margin-top:14px;display:flex;align-items:center;gap:10px;max-width:340px}
+.prog .bar{flex:1;display:grid;grid-auto-flow:column;gap:4px}
+.prog .bar i{height:8px;border-radius:4px;background:rgba(255,255,255,.3)}
+.prog .bar i.on{background:currentColor}
+.hero.manha .prog .bar i{background:rgba(58,34,0,.15)} .hero.manha .prog .bar i.on{background:#3a2200}
+.prog small{font-family:var(--mono);font-size:.8rem;opacity:.9;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{background:rgba(255,255,255,.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.32);border-radius:999px;padding:7px 13px;font-size:.85rem;font-weight:700}
+.hero.manha .chip{background:rgba(255,255,255,.4);border-color:rgba(255,255,255,.6)}
+
+/* ===== Cartões ===== */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:var(--shadow);min-width:0}
+.card h2{font-family:var(--display);font-weight:700;font-size:1.15rem;margin:0}
+.hd{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.hd small{color:var(--muted);font-size:.85rem}
+
+/* Consulta */
+.consulta{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center}
+.consulta label{font-weight:700;font-size:.95rem}
+.consulta label small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.cq{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+input[type=date]{font:600 1rem var(--body);padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);color:var(--fg)}
+input[type=date]:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.res{display:inline-flex;align-items:center;gap:8px;font-weight:800;padding:10px 16px;border-radius:12px;color:#fff;min-height:44px}
+
+/* Ciclo */
+.strip{display:grid;grid-template-columns:repeat(24,minmax(0,1fr));gap:3px}
+.seg{height:34px;border-radius:6px;position:relative}
+.seg.past{opacity:.3}
+.seg.now{outline:2px solid var(--fg);outline-offset:2px;z-index:1}
+.seg.now::after{content:"";position:absolute;left:50%;bottom:-12px;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--fg)}
+.strip-lbl{display:grid;grid-template-columns:6fr 2fr 6fr 2fr 6fr 2fr;gap:3px;margin-top:14px;font-size:.7rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:center}
+
+/* gradientes compartilhados */
+.g-manha{background:linear-gradient(135deg,var(--manha-a),var(--manha-b))!important;color:#3a2200!important}
+.g-tarde{background:linear-gradient(135deg,var(--tarde-a),var(--tarde-b))!important}
+.g-noite{background:linear-gradient(135deg,var(--noite-a),var(--noite-b))!important}
+.g-folga{background:linear-gradient(135deg,var(--folga-a),var(--folga-b))!important}
+
+/* Calendário */
+.cal-nav{display:flex;align-items:center;gap:8px}
+.cal-nav h2{text-transform:capitalize;min-width:10ch;text-align:center}
+.icon-btn,.today-btn{border:1px solid var(--line);background:var(--surface-2);color:var(--fg);cursor:pointer;transition:transform .15s,border-color .15s}
+.icon-btn{width:40px;height:40px;border-radius:12px;font-size:1.15rem;display:grid;place-items:center}
+.today-btn{font:700 .85rem var(--body);padding:9px 14px;border-radius:12px}
+.icon-btn:hover,.today-btn:hover{border-color:var(--muted);transform:translateY(-1px)}
+.icon-btn:focus-visible,.today-btn:focus-visible,.day:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.resumo{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:16px}
+.rs{border-radius:14px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--line);min-width:0}
+.rs b{display:block;font-family:var(--display);font-weight:800;font-size:1.5rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.rs span{font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.rs.manha b{color:var(--manha-ink)} .rs.tarde b{color:var(--tarde-ink)} .rs.noite b{color:var(--noite-ink)} .rs.folga b{color:var(--folga-ink)} .rs.fds b{color:var(--gold)}
+.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;transition:opacity .25s,transform .25s}
+.grid.saindo{opacity:0;transform:translateX(var(--dx,0))}
+.dow{font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:center;padding-bottom:6px}
+.dow.we{color:var(--gold)}
+.day{font:inherit;color:inherit;border-radius:14px;padding:8px 4px 10px;min-height:70px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:4px;position:relative;border:1.5px solid transparent;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.day:hover{transform:translateY(-2px);box-shadow:0 8px 18px -10px rgba(0,0,0,.35)}
+.day .n{font-family:var(--mono);font-size:.95rem;font-variant-numeric:tabular-nums}
+.day .t{font-size:.66rem;font-weight:800;letter-spacing:.03em;padding:2px 8px;border-radius:999px;color:#fff;white-space:nowrap}
+.day.manha{background:var(--manha-soft)} .day.tarde{background:var(--tarde-soft)} .day.noite{background:var(--noite-soft)} .day.folga{background:var(--folga-soft)}
+.day.folga .n{color:var(--folga-ink);font-weight:700}
+.day.star::after{content:"★";position:absolute;top:4px;right:6px;font-size:.7rem;color:var(--gold)}
+.day.hoje{border-color:var(--fg)}
+.day.hoje::before{content:"hoje";position:absolute;top:-8px;font:800 .56rem var(--body);letter-spacing:.1em;text-transform:uppercase;background:var(--fg);color:var(--bg);padding:1px 6px;border-radius:6px}
+.day.sel{box-shadow:0 0 0 3px var(--gold)}
+.day.passado{opacity:.42}
+.day.vazio{background:transparent;border:0;cursor:default}
+.day.vazio:hover{transform:none;box-shadow:none}
+.detalhe{margin-top:16px;padding:14px 16px;border-radius:16px;background:var(--surface-2);border:1px solid var(--line);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.detalhe .pill{font-weight:800;padding:6px 12px;border-radius:10px;color:#fff;font-size:.9rem}
+.detalhe .tx{flex:1;min-width:200px;font-size:.93rem}
+.detalhe .tx b{display:block;font-size:1rem}
+.detalhe .tx span{color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line);font-size:.84rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.dot{width:14px;height:14px;border-radius:5px;display:inline-block}
+.legend .stl{color:var(--gold);font-size:.9rem}
+
+/* Folgas */
+.folgas{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;list-style:none;margin:0;padding:0}
+.folgas li{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:16px;background:var(--surface-2);border:1px solid var(--line);position:relative}
+.folgas li.fds{border-color:var(--gold);background:linear-gradient(135deg,var(--gold-soft),var(--surface-2) 70%)}
+.cnt{flex:none;width:56px;height:56px;border-radius:15px;display:grid;place-items:center;text-align:center;color:#fff;line-height:1;align-content:center}
+.cnt b{font-family:var(--display);font-weight:800;font-size:1.35rem;display:block}
+.cnt i{font-style:normal;font-size:.6rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.92}
+.folgas .d{font-weight:800}
+.folgas .s{font-size:.84rem;color:var(--muted)}
+.tag{display:inline-block;margin-top:4px;font-size:.66rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
+
+.note{font-size:.82rem;color:var(--muted);text-align:center}
+
+@media (max-width:620px){
+  .resumo{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .consulta{grid-template-columns:1fr}
+  .cq{justify-content:flex-start}
+}
+@media (max-width:560px){
+  .hero-in{padding:22px}
+  .orb{width:100px;height:100px;right:-14px;top:30%}
+  .hero.noite .orb{width:80px;height:80px}
+  .hero.folga .orb{width:90px;height:90px}
+  .card{padding:16px;border-radius:18px}
+  .grid{gap:4px}
+  .day{min-height:58px;border-radius:10px;padding:6px 2px 8px}
+  .day .t{font-size:.54rem;padding:2px 5px}
+  .seg{height:26px;border-radius:4px}
+  .strip{gap:2px}
+  .strip-lbl{font-size:.56rem;gap:2px}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Revezamento 6x2 · 4 equipes</div>
+      <h1>Equipe A</h1>
+    </div>
+    <div class="flow">
+      <span class="g-manha">Manhã</span><em>→</em><span class="g-noite">Noite</span><em>→</em><span class="g-tarde">Tarde</span>
+    </div>
+  </header>
+
+  <section class="hero" id="hero">
+    <div class="sky"></div><div class="stars" id="stars"></div><div class="orb"></div><div class="hills"></div>
+    <div class="hero-in" id="heroIn"></div>
+  </section>
+
+  <section class="card">
+    <div class="consulta">
+      <label for="dt">Consultar uma data<small>Descubra seu turno em qualquer dia</small></label>
+      <div class="cq"><input type="date" id="dt"><span class="res" id="res"></span></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="hd"><h2>Ciclo de 24 dias</h2><small id="ciclo-info"></small></div>
+    <div class="strip" id="strip"></div>
+    <div class="strip-lbl"><span>Manhã</span><span>Folga</span><span>Noite</span><span>Folga</span><span>Tarde</span><span>Folga</span></div>
+  </section>
+
+  <section class="card">
+    <div class="hd">
+      <div class="cal-nav">
+        <button class="icon-btn" id="prev" type="button" aria-label="Mês anterior">‹</button>
+        <h2 id="mes"></h2>
+        <button class="icon-btn" id="next" type="button" aria-label="Próximo mês">›</button>
+      </div>
+      <button class="today-btn" id="voltar" type="button">Ir para hoje</button>
+    </div>
+    <div class="resumo" id="resumo"></div>
+    <div class="grid" id="cal"></div>
+    <div class="detalhe" id="detalhe"></div>
+    <div class="legend">
+      <span><i class="dot g-manha"></i>Manhã</span>
+      <span><i class="dot g-noite"></i>Noite</span>
+      <span><i class="dot g-tarde"></i>Tarde</span>
+      <span><i class="dot g-folga"></i>Folga</span>
+      <span><b class="stl">★</b>Folga no fim de semana</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="hd"><h2>Próximas folgas</h2><small>2 dias seguidos a cada 8</small></div>
+    <ul class="folgas" id="folgas"></ul>
+  </section>
+
+  <p class="note">Base da escala: folga em 4 e 5/11/2026 e início no turno da manhã em 6/11/2026.</p>
+</div>
+
+<script>
+const INICIO = Date.UTC(2026,10,6), DIA = 86400000;
+const BLOCOS = [..."MMMMMMFFNNNNNNFFTTTTTTFF"].map(c=>({M:"manha",N:"noite",T:"tarde",F:"folga"})[c]);
+const NOME = {manha:"Manhã",tarde:"Tarde",noite:"Noite",folga:"Folga"};
+const MESES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+const DOW = ["dom","seg","ter","qua","qui","sex","sáb"];
+const DOWL = ["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
+
+const idx = u => { const i=Math.round((u-INICIO)/DIA); return ((i%24)+24)%24; };
+const turno = u => BLOCOS[idx(u)];
+const hoje = (()=>{ const d=new Date(); return Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()); })();
+const D = u => new Date(u);
+const dm = u => String(D(u).getUTCDate()).padStart(2,"0")+"/"+String(D(u).getUTCMonth()+1).padStart(2,"0");
+const wd = u => DOWL[D(u).getUTCDay()];
+const fds = u => [0,6].includes(D(u).getUTCDay());
+const art = t => t==="folga" ? "a folga" : "o turno da "+NOME[t].toLowerCase();
+
+let ano=D(hoje).getUTCFullYear(), mes=D(hoje).getUTCMonth(), sel=hoje;
+
+function bloco(u){ const t=turno(u); let a=u,b=u; while(turno(a-DIA)===t)a-=DIA; while(turno(b+DIA)===t)b+=DIA;
+  return {t,a,b,len:Math.round((b-a)/DIA)+1,pos:Math.round((u-a)/DIA)+1}; }
+
+function renderHero(){
+  const bi=bloco(hoje), t=bi.t, prox=bi.b+DIA, tp=turno(prox), restam=bi.len-bi.pos;
+  const hero=document.getElementById("hero"); hero.className="hero "+t;
+  let info, chips=[];
+  if(t==="folga"){
+    info = restam ? `Dia de descanso. Ainda tem mais ${restam===1?"um dia":restam+" dias"} livre antes de voltar.` : `Último dia de descanso. Amanhã você volta no turno da ${NOME[tp].toLowerCase()}.`;
+    chips.push(`Volta ${wd(prox)}, ${dm(prox)} · ${NOME[tp]}`);
+  } else {
+    info = restam ? `Faltam ${restam} ${restam===1?"dia":"dias"} para a próxima folga.` : `Último dia do turno. Amanhã começa sua folga.`;
+    chips.push(`Folga ${dm(prox)} e ${dm(prox+DIA)}`);
+  }
+  chips.push(`Amanhã: ${NOME[turno(hoje+DIA)]}`);
+  const bars=Array.from({length:bi.len},(_,k)=>`<i class="${k<bi.pos?"on":""}"></i>`).join("");
+  document.getElementById("heroIn").innerHTML=`
+    <div class="k">Hoje · ${wd(hoje)}, ${dm(hoje)}</div>
+    <div class="big">${NOME[t]}</div>
+    <div class="info">${info}</div>
+    <div class="prog"><div class="bar">${bars}</div><small>dia ${bi.pos} de ${bi.len}</small></div>
+    <div class="chips">${chips.map(c=>`<span class="chip">${c}</span>`).join("")}</div>`;
+  const st=document.getElementById("stars");
+  st.innerHTML = t==="noite" ? Array.from({length:28},(_,k)=>{
+    const x=(k*37%97), y=(k*53%70)+4, d=(k%7)*.4; return `<i style="left:${x}%;top:${y}%;animation-delay:${d}s"></i>`; }).join("") : "";
+}
+
+function renderStrip(){
+  const i=idx(hoje);
+  document.getElementById("strip").innerHTML = BLOCOS.map((t,k)=>
+    `<div class="seg g-${t}${k<i?" past":""}${k===i?" now":""}" title="Dia ${k+1}: ${NOME[t]}"></div>`).join("");
+  document.getElementById("ciclo-info").textContent = `Hoje é o dia ${i+1} de 24`;
+}
+
+function renderResumo(){
+  const dias=D(Date.UTC(ano,mes+1,0)).getUTCDate(), c={manha:0,noite:0,tarde:0,folga:0}; let w=0;
+  for(let d=1; d<=dias; d++){ const u=Date.UTC(ano,mes,d), t=turno(u); c[t]++; if(t==="folga"&&fds(u)) w++; }
+  document.getElementById("resumo").innerHTML =
+    ["manha","noite","tarde","folga"].map(t=>`<div class="rs ${t}"><b>${c[t]}</b><span>${NOME[t]}</span></div>`).join("")+
+    `<div class="rs fds"><b>${w}</b><span>Folga fim de semana</span></div>`;
+}
+
+function renderMes(dir){
+  const g=document.getElementById("cal");
+  const draw=()=>{
+    document.getElementById("mes").textContent = MESES[mes]+" "+ano;
+    let h=DOW.map((d,i)=>`<div class="dow${i===0||i===6?" we":""}">${d}</div>`).join("");
+    const first=Date.UTC(ano,mes,1), dias=D(Date.UTC(ano,mes+1,0)).getUTCDate();
+    for(let i=0;i<D(first).getUTCDay();i++) h+=`<div class="day vazio"></div>`;
+    for(let d=1; d<=dias; d++){
+      const u=Date.UTC(ano,mes,d), t=turno(u);
+      const cls=["day",t, u===hoje&&"hoje", u<hoje&&"passado", u===sel&&"sel", t==="folga"&&fds(u)&&"star"].filter(Boolean).join(" ");
+      h+=`<button type="button" class="${cls}" data-u="${u}" aria-label="${wd(u)} ${dm(u)}: ${NOME[t]}"><span class="n">${d}</span><span class="t g-${t}">${NOME[t]}</span></button>`;
+    }
+    g.innerHTML=h; renderResumo();
+  };
+  if(dir){ g.style.setProperty("--dx",dir>0?"-14px":"14px"); g.classList.add("saindo");
+    setTimeout(()=>{ draw(); g.style.setProperty("--dx",dir>0?"14px":"-14px"); requestAnimationFrame(()=>{ g.classList.remove("saindo"); }); },180);
+  } else draw();
+}
+
+function renderDetalhe(){
+  const bi=bloco(sel), t=bi.t;
+  let txt;
+  if(t==="folga"){ const v=bi.b+DIA; txt=`Folga ${bi.pos} de 2. Volta ${wd(v)}, ${dm(v)}, no turno da ${NOME[turno(v)].toLowerCase()}.`; }
+  else { const f=bi.b+DIA, n=Math.round((f-sel)/DIA); txt=`Dia ${bi.pos} de 6 no turno da ${NOME[t].toLowerCase()}. Folga em ${n} ${n===1?"dia":"dias"} (${dm(f)}).`; }
+  const quando = sel===hoje ? "Hoje" : sel===hoje+DIA ? "Amanhã" : sel===hoje-DIA ? "Ontem" : "";
+  document.getElementById("detalhe").innerHTML =
+    `<span class="pill g-${t}">${NOME[t]}</span><div class="tx"><b>${quando?quando+" · ":""}${wd(sel)}, ${dm(sel)}/${D(sel).getUTCFullYear()}</b><span>${txt}</span></div>`;
+}
+
+function renderFolgas(){
+  const out=[]; let u=hoje;
+  while(out.length<8){ if(turno(u)==="folga"&&turno(u-DIA)!=="folga") out.push(u); u+=DIA; }
+  document.getElementById("folgas").innerHTML = out.map(x=>{
+    const n=Math.round((x-hoje)/DIA), w=fds(x)||fds(x+DIA);
+    const cnt = n<=0 ? `<b>Já</b><i>agora</i>` : `<b>${n}</b><i>${n===1?"dia":"dias"}</i>`;
+    return `<li class="${w?"fds":""}"><div class="cnt g-folga">${cnt}</div><div><div class="d">${dm(x)} e ${dm(x+DIA)}</div><div class="s">${wd(x)} e ${wd(x+DIA)} · volta na ${NOME[turno(x+2*DIA)].toLowerCase()}</div>${w?`<span class="tag">★ Fim de semana</span>`:""}</div></li>`;
+  }).join("");
+}
+
+function renderConsulta(){
+  const v=document.getElementById("dt").value, r=document.getElementById("res");
+  if(!v){ r.textContent=""; r.className="res"; return; }
+  const [y,m,d]=v.split("-").map(Number), u=Date.UTC(y,m-1,d), t=turno(u);
+  r.className="res g-"+t; r.textContent=`${wd(u)}: ${NOME[t]}`;
+}
+
+function irPara(u){ sel=u; const a=D(u).getUTCFullYear(), m=D(u).getUTCMonth(); const dir=(a*12+m)-(ano*12+mes); ano=a; mes=m; renderMes(dir?Math.sign(dir):0); renderDetalhe(); }
+
+document.getElementById("prev").onclick=()=>{ if(--mes<0){mes=11;ano--;} renderMes(-1); };
+document.getElementById("next").onclick=()=>{ if(++mes>11){mes=0;ano++;} renderMes(1); };
+document.getElementById("voltar").onclick=()=>irPara(hoje);
+document.getElementById("cal").addEventListener("click",e=>{ const b=e.target.closest("[data-u]"); if(!b) return; sel=+b.dataset.u;
+  document.querySelectorAll(".day.sel").forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); renderDetalhe(); });
+const dt=document.getElementById("dt");
+dt.value = new Date(hoje+7*DIA).toISOString().slice(0,10);
+dt.addEventListener("change",()=>{ renderConsulta(); if(dt.value){ const [y,m,d]=dt.value.split("-").map(Number); irPara(Date.UTC(y,m-1,d)); } });
+
+// deslizar para trocar de mês no celular
+let sx=null; const calEl=document.getElementById("cal");
+calEl.addEventListener("touchstart",e=>{ sx=e.touches[0].clientX; },{passive:true});
+calEl.addEventListener("touchend",e=>{ if(sx===null) return; const dx=e.changedTouches[0].clientX-sx; sx=null;
+  if(Math.abs(dx)>60){ (dx<0?document.getElementById("next"):document.getElementById("prev")).click(); } });
+
+renderHero(); renderStrip(); renderMes(0); renderDetalhe(); renderFolgas(); renderConsulta();
+</script>
+
+</html>
